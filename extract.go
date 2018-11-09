@@ -22,7 +22,7 @@ func FetchRepos(username string)([]*github.Repository, error){
   return repos, err
 }
 
-// Function to fetch the organi of the given user
+// Function to fetch the organisation of the given user
 func FetchOrganisations(username string)([]*github.Organization, error){
   client := github.NewClient(nil)
   orgs, _, err := client.Organizations.List(context.Background(), username, nil)
@@ -57,11 +57,19 @@ func main() {
     fmt.Printf("Private: %v\n", repo.GetPrivate()) // Private boolean
     fmt.Printf("Size: %v\n", repo.GetSize()) // Size int
     fmt.Printf("Language: %v\n\n", repo.GetLanguage()) // Language string
-      _, err = stmtIns.Exec(repo.GetID(), repo.GetName(), repo.GetDescription(), repo.GetPrivate(), repo.GetSize(), repo.GetLanguage())
+    _, err = stmtIns.Exec(repo.GetID(), repo.GetName(), repo.GetDescription(), repo.GetPrivate(), repo.GetSize(), repo.GetLanguage())
+      if err != nil {
+        log.Fatal(err)
+      }
     j++
   }
 
 // ORGANISATIONS
+  stmtIns1, err := db.Prepare("INSERT INTO org (id, login, description, url) VALUES (?, ?, ?, ?)")
+  if err != nil{
+  log.Fatal(err)
+  }
+  defer stmtIns1.Close()
   organisations, err := FetchOrganisations(username)
 
   fmt.Printf("ORGANISATIONS\n\n")
@@ -70,15 +78,20 @@ func main() {
     fmt.Printf("Name: %v\n", organisation.GetLogin()) // Name string
     fmt.Printf("Description: %v\n", organisation.GetDescription()) // Description string
     fmt.Printf("URL: %v\n\n", organisation.GetURL()) // URL string
+    _, err = stmtIns1.Exec(organisation.GetID(), organisation.GetLogin(), organisation.GetDescription(), organisation.GetURL())
+      if err != nil {
+        log.Fatal(err)
+      }
     k++
   }
 
-
 // FOLLOWERS
+  stmtIns2, err := db.Prepare("INSERT INTO follower (id, login, url, type, site_admin) VALUES (?, ?, ?, ?, ?)")
+  if err != nil{
+    log.Fatal(err)
+  }
+  defer stmtIns2.Close()
   followers, err := FetchFollowers(username)
-
-
-
 
   fmt.Printf("FOLLOWERS\n\n")
   for i, follower := range followers {
@@ -87,6 +100,10 @@ func main() {
     fmt.Printf("Repo URL: %v\n", follower.GetReposURL()) // URL string
     fmt.Printf("Type: %v\n", follower.GetType()) // Type string
     fmt.Printf("Site Admin: %v\n\n", follower.GetSiteAdmin()) // Site Admin boolean
+    _, err = stmtIns2.Exec(follower.GetID(), follower.GetLogin(), follower.GetReposURL(), follower.GetType(), follower.GetSiteAdmin())
+      if err != nil {
+        log.Fatal(err)
+      }
     i++
   }
 

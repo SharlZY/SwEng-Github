@@ -2,13 +2,13 @@ package main
 
 import(
   "database/sql"
-  _"github.com/go-sql-driver/mysql"
+  _"github.com/go-sql-driver/mysql" // Library used for accessing mysql database
   "log"
   "fmt"
   "context"
-  "github.com/google/go-github/github"
+  "github.com/google/go-github/github" // Library used for accessing github api
 )
-
+// Commented out Database code, as data has already been entered into the database
 // Function to fetch the followers of the given user
 func FetchFollowers(username string)([]*github.User, error){
   client := github.NewClient(nil)
@@ -35,6 +35,8 @@ func main() {
   fmt.Scanf("%s", &username)
 
   // Access extractdb from MySql, the database where we are going to store the extracted information
+  // For privacy reasons, I cannot leave my username and password for the database I used in the code
+  // Replace user with username of database and password with the password to the database
   db, err := sql.Open("mysql", "user:password@tcp(127.0.0.1:3306)/extractdb")
   if err != nil {
     log.Fatal(err)
@@ -42,11 +44,11 @@ func main() {
   defer db.Close()
 
 // REPOSITORIES
-  stmtIns, err := db.Prepare("INSERT INTO repo (id, name, description, private, size, language) VALUES (?, ?, ?, ?, ?, ?)")
+/*  stmtIns, err := db.Prepare("INSERT INTO repo (id, name, description, private, size, language) VALUES (?, ?, ?, ?, ?, ?)")
   if err != nil{
     log.Fatal(err)
   }
-  defer stmtIns.Close()
+  defer stmtIns.Close()*/
 
   repos, err := FetchRepos(username)
   fmt.Printf("REPOSITORIES\n\n")
@@ -57,19 +59,19 @@ func main() {
     fmt.Printf("Private: %v\n", repo.GetPrivate()) // Private boolean
     fmt.Printf("Size: %v\n", repo.GetSize()) // Size int
     fmt.Printf("Language: %v\n\n", repo.GetLanguage()) // Language string
-    _, err = stmtIns.Exec(repo.GetID(), repo.GetName(), repo.GetDescription(), repo.GetPrivate(), repo.GetSize(), repo.GetLanguage())
-      if err != nil {
+  //  _, err = stmtIns.Exec(repo.GetID(), repo.GetName(), repo.GetDescription(), repo.GetPrivate(), repo.GetSize(), repo.GetLanguage())
+  /*    if err != nil {
         log.Fatal(err)
-      }
+      }*/
     j++
   }
 
 // ORGANISATIONS
-  stmtIns1, err := db.Prepare("INSERT INTO org (id, login, description, url) VALUES (?, ?, ?, ?)")
+/*  stmtIns1, err := db.Prepare("INSERT INTO org (id, login, description, url) VALUES (?, ?, ?, ?)")
   if err != nil{
   log.Fatal(err)
   }
-  defer stmtIns1.Close()
+  defer stmtIns1.Close()*/
   organisations, err := FetchOrganisations(username)
 
   fmt.Printf("ORGANISATIONS\n\n")
@@ -78,19 +80,19 @@ func main() {
     fmt.Printf("Name: %v\n", organisation.GetLogin()) // Name string
     fmt.Printf("Description: %v\n", organisation.GetDescription()) // Description string
     fmt.Printf("URL: %v\n\n", organisation.GetURL()) // URL string
-    _, err = stmtIns1.Exec(organisation.GetID(), organisation.GetLogin(), organisation.GetDescription(), organisation.GetURL())
-      if err != nil {
+  //  _, err = stmtIns1.Exec(organisation.GetID(), organisation.GetLogin(), organisation.GetDescription(), organisation.GetURL())
+  /*    if err != nil {
         log.Fatal(err)
-      }
+      }*/
     k++
   }
 
 // FOLLOWERS
-  stmtIns2, err := db.Prepare("INSERT INTO follower (id, login, url, type, site_admin) VALUES (?, ?, ?, ?, ?)")
+/*  stmtIns2, err := db.Prepare("INSERT INTO follower (id, login, repo, type, site_admin) VALUES (?, ?, ?, ?, ?)")
   if err != nil{
     log.Fatal(err)
   }
-  defer stmtIns2.Close()
+  defer stmtIns2.Close()*/
   followers, err := FetchFollowers(username)
 
   fmt.Printf("FOLLOWERS\n\n")
@@ -100,10 +102,10 @@ func main() {
     fmt.Printf("Repo URL: %v\n", follower.GetReposURL()) // URL string
     fmt.Printf("Type: %v\n", follower.GetType()) // Type string
     fmt.Printf("Site Admin: %v\n\n", follower.GetSiteAdmin()) // Site Admin boolean
-    _, err = stmtIns2.Exec(follower.GetID(), follower.GetLogin(), follower.GetReposURL(), follower.GetType(), follower.GetSiteAdmin())
-      if err != nil {
+  //  _, err = stmtIns2.Exec(follower.GetID(), follower.GetLogin(), follower.GetReposURL(), follower.GetType(), follower.GetSiteAdmin())
+/*      if err != nil {
         log.Fatal(err)
-      }
+      }*/
     i++
   }
 
@@ -111,5 +113,16 @@ func main() {
     fmt.Printf("Error: %v\n", err)
     return
   }
-
+  // Retrieving information from the database
+  stmtOut, err := db.Prepare("SELECT name FROM repo WHERE id = ?")
+  if err != nil {
+		log.Fatal(err)
+	}
+	defer stmtOut.Close()
+  var result string
+  err = stmtOut.QueryRow(141727516).Scan(&result)
+  if err != nil {
+    log.Fatal(err)
+  }
+  fmt.Printf("Query Result: %s\n", result)
 }

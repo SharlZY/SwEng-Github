@@ -34,6 +34,20 @@ func FetchRepos(username string) ([]*github.Repository, error) {
 	return repos, err
 }
 
+// Function to fetch the collaborators of certain repo
+func FetchReposStats1(username, repo string) ([]*github.ContributorStats, error) {
+	client := github.NewClient(nil)
+	collabs, _, err := client.Repositories.ListContributorsStats(context.Background(), username, repo)
+	return collabs, err
+}
+
+// Function to fetch the stats of certain repo
+func FetchReposStats2(username, repo string) ([]*github.WeeklyStats, error) {
+	client := github.NewClient(nil)
+	act, _, err := client.Repositories.ListCodeFrequency(context.Background(), username, repo)
+	return act, err
+}
+
 // Function to fetch the organisation of the given user
 func FetchOrganisations(username string) ([]*github.Organization, error) {
 	client := github.NewClient(nil)
@@ -43,8 +57,11 @@ func FetchOrganisations(username string) ([]*github.Organization, error) {
 
 func main() {
 	var username string
+	var reponame string
 	fmt.Print("Please enter your GitHub username: ")
 	fmt.Scanf("%s", &username)
+	fmt.Print("Please enter a repo name: ")
+	fmt.Scanf("%s", &reponame)
 
 	// Access extractdb from MySql, the database where we are going to store the extracted information
 	// For privacy reasons, I cannot leave my username and password for the database I used in the code
@@ -111,6 +128,30 @@ func main() {
 		k++
 	}
 
+	collabs, err := FetchReposStats1(username, reponame)
+
+	fmt.Printf("COLLABORATORS\n\n")
+	for i, collab := range collabs {
+		fmt.Printf("Author: %v\n", collab.GetAuthor()) //
+		fmt.Printf("Total: %v\n", collab.GetTotal())   //
+		/*      if err != nil {
+		        log.Fatal(err)
+		      }*/
+		i++
+	}
+
+	acts, err := FetchReposStats2(username, reponame)
+
+	fmt.Printf("ACTIVITY\n\n")
+	for i, act := range acts {
+		fmt.Printf("Additions: %v\n", act.GetAdditions()) //
+		fmt.Printf("Commits: %v\n", act.GetCommits())
+		fmt.Printf("Deletions: %v\n\n", act.GetDeletions()) // /
+		/*      if err != nil {
+		        log.Fatal(err)
+		      }*/
+		i++
+	}
 	// FOLLOWERS
 	/*  stmtIns2, err := db.Prepare("INSERT INTO follower (id, login, repo, type, site_admin) VALUES (?, ?, ?, ?, ?)")
 	    if err != nil{

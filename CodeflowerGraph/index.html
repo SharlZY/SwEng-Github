@@ -1,0 +1,79 @@
+<!-- Used this library: https://github.com/fzaninotto/CodeFlower-->
+<html>
+<head> 
+    <title> CodeFlower Visualisation For Repository of User/Phadej </title>
+    <style type="text/css">
+        circle.node {
+            cursor: pointer;
+            stroke: #000;
+            stroke-width: .5px;
+          }
+          
+          circle.node.directory {
+            stroke: #9ecae1;
+            stroke-width: 2px;
+          }
+          
+          circle.node.collapsed {
+            stroke: #555;
+          }
+          
+          .nodetext {
+            fill: #252929;
+            font-weight: bold;
+            text-shadow: 0 0 0.2em white;
+          }
+          
+          line.link {
+            fill: none;
+            stroke: #9ecae1;
+            stroke-width: 1.5px;
+          }
+    </style>      
+</head>
+<body>
+    <div class = "content">
+        <div class = "container">
+            <p class = "lead"> </p>
+            <div id = "visualization">
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="d3.js"></script>
+    <script type="text/javascript" src="d3.geom.js"></script>
+    <script type="text/javascript" src="d3.layout.js"></script>
+    <script type="text/javascript" src="CodeFlower.js"></script>
+    <script type="text/javascript" src="dataConverter.js"></script>
+    <script type="text/javascript">
+        var data = [{"name":"bacon.js","size":6266,"language":"CoffeeScript"},{"name":"baconjs.github.io","size":495,"language":"JavaScript"},{"name":"bed-and-breakfast","size":175,"language":"Haskell"},{"name":"agda-summer-school","size":841,"language":"Agda"},{"name":"annankatu","size":670,"language":"JavaScript"},{"name":"aeson","size":40554,"language":"Swift"},{"name":"acme-operators","size":136,"language":"Haskell"},{"name":"base-orphans","size":160,"language":"Haskell"},{"name":"attoparsec","size":1000,"language":"Haskell"},{"name":"aeson-extra","size":95,"language":"Haskell"},{"name":"apply-refact","size":208,"language":"Haskell"},{"name":"aeson-schema","size":210,"language":"Haskell"},{"name":"aeson-compat","size":81,"language":"Haskell"},{"name":"base-compat","size":280,"language":"Haskell"},{"name":"async","size":55,"language":"Haskell"},{"name":"ad","size":2104,"language":"Haskell"},{"name":"arithmoi","size":712,"language":"Haskell"},{"name":"amazonka","size":153503,"language":"Haskell"},{"name":"avulias-botti","size":97,"language":"Clojure"},{"name":"basic-sop","size":17,"language":"Haskell"},{"name":"adjunctions","size":231,"language":"Haskell"},{"name":"approximate","size":37,"language":"Haskell"},{"name":"acme-kmett","size":56101,"language":"Makefile"},{"name":"array","size":2079,"language":"Haskell"},{"name":"ansi-pretty-compact","size":31,"language":"Haskell"},{"name":"ansi-wl-pprint","size":94,"language":"Haskell"},{"name":"alga","size":474,"language":"Haskell"},{"name":"alex","size":627,"language":"Haskell"},{"name":"aeson-pretty","size":50,"language":"Haskell"},{"name":"acmart-pacmpl-extended-template","size":538,"language":"TeX"}];
+        var newData = { name :"root", children : [] },
+        levels = ["name","size"];
+        // Credits to https://stackoverflow.com/questions/19317115/convert-flat-json-file-to-hierarchical-json-data-like-flare-json-d3-example-fil
+        // For each data row, loop through the expected levels traversing the output tree
+        data.forEach(function(d){
+        // Keep this as a reference to the current level
+        var depthCursor = newData.children;
+        // Go down one level at a time
+        levels.forEach(function( property, depth ){
+
+        // Look to see if a branch has already been created
+        var index;
+        depthCursor.forEach(function(child,i){
+            if ( d[property] == child.name ) index = i;
+        });
+        // Add a branch if it isn't there
+        if ( isNaN(index) ) {
+            depthCursor.push({ name : d[property], children : []});
+            index = depthCursor.length - 1;
+        }
+        // Now reference the new child array as we go deeper into the tree
+        depthCursor = depthCursor[index].children;
+        // This is a leaf, so add the last element to the specified branch
+        if ( depth === levels.length - 1 ) depthCursor.push({ name : d.name, size : d.size });
+        });
+        });
+        var myFlower = new CodeFlower("#visualization", 1500, 1000);
+        myFlower.update(newData);
+    </script>
+</body>
+</html>
